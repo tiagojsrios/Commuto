@@ -28,6 +28,6 @@ struct MainMenuView: View {
             }
         }
         .padding(.vertical, 4)
-        .frame(width: 220)
+        .frame(width: 300)
     }
 }
