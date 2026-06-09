@@ -10,22 +10,36 @@ struct TripDetailsView: View {
     let trip: Trip?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading) {
 
-            // Header
-            HStack(alignment: .center) {
-                Button(action: { showTripDetails = false }) {
-                    Image(systemName: "chevron.left")
-                    Text("Back")
+            HStack(spacing: 0) {
+                // Column 1 - Back button
+                HStack {
+                    Button(action: { showTripDetails = false }) {
+                        Image(systemName: "chevron.left")
+                    }
+                    .buttonStyle(.plain)
+                    Spacer()
                 }
-                .buttonStyle(.plain)
-                Spacer()
+                .frame(maxWidth: .infinity)
+
+                // Column 2 - Title
                 Text("Trip Details")
                     .font(.headline)
-                Spacer()
+                    .frame(maxWidth: .infinity, alignment: .center)
+
+                // Column 3 - Spacer matching chevron size
+                HStack {
+                    Spacer()
+                    Image(systemName: "chevron.left")
+                        .hidden() // Same size as the back button, but invisible
+                }
+                .frame(maxWidth: .infinity)
             }
+            .padding(.top, 8)
 
             Divider()
+                .padding(.bottom, 8)
 
             if trip == nil {
                 Text("No trips available")
