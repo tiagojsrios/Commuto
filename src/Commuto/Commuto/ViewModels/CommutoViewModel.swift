@@ -52,6 +52,7 @@ class TravelState {
     public var status: String
     public var nextDepartureTime: String?
     public var numberOfTransfers: Int?
+    public var trip: Trip?
     
     init() {
         self.status = "Initial"
@@ -87,6 +88,7 @@ class TravelState {
         
         self.nextDepartureTime = trip.legs[0].origin.actualDateTime
         self.numberOfTransfers = trip.legs.count
+        self.trip = trip
         
         return self
     }

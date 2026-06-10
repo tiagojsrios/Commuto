@@ -16,12 +16,14 @@ struct CommutoApp : App {
             VStack(alignment: .leading, spacing: 0) {
                 if showSettings {
                     SettingsView(showSettings: $showSettings)
+                } else if showTripDetails {
+                    TripDetailsView(showTripDetails: $showTripDetails, trip: commutoViewModel.travel.trip)
                 } else {
                     MainMenuView(showSettings: $showSettings, showTripDetails: $showTripDetails)
                 }
             }
             .padding(.vertical, 4)
-            .frame(width: 220)
+            .frame(width: 300)
         } label: {
             HStack {
                 Image(systemName: "tram.fill")
