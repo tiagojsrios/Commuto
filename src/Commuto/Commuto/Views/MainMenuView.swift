@@ -8,6 +8,7 @@ import SwiftUI
 struct MainMenuView: View {
     @Binding var showSettings: Bool
     @Binding var showTripDetails: Bool
+    @ObservedObject var travelState: CommutoViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -15,6 +16,12 @@ struct MainMenuView: View {
                 showTripDetails = true
             }
 
+            MenuRow(icon: travelState.isLoading ? "arrow.clockwise.circle" : "arrow.clockwise", title: travelState.isLoading ? "Refreshing..." : "Refresh") {
+                travelState.refresh()
+            }
+            .disabled(travelState.isLoading)
+            .opacity(travelState.isLoading ? 0.5 : 1)
+            
             Divider()
 
             MenuRow(icon: "gear", title: "Settings") {
