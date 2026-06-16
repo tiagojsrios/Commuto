@@ -19,7 +19,7 @@ struct CommutoApp : App {
                 } else if showTripDetails {
                     TripDetailsView(showTripDetails: $showTripDetails, trip: commutoViewModel.travel.trip)
                 } else {
-                    MainMenuView(showSettings: $showSettings, showTripDetails: $showTripDetails)
+                    MainMenuView(showSettings: $showSettings, showTripDetails: $showTripDetails, travelState: commutoViewModel)
                 }
             }
             .padding(.vertical, 4)

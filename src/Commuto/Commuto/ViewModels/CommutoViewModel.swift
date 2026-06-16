@@ -10,6 +10,7 @@ class CommutoViewModel: ObservableObject {
     @Published var travel: TravelState
     private var timer: Timer?
     private var httpClient: NSHttpClient
+    @Published var isLoading = false
     @AppStorage("departureStation") private var departureStation = ""
     @AppStorage("arrivalStation") private var arrivalStation = ""
     
@@ -27,24 +28,31 @@ class CommutoViewModel: ObservableObject {
             await self.run()
         }
     }
+    
+    func refresh() {
+        Task {
+            await self.run()
+        }
+    }
 
     func run() async {
+        await MainActor.run { isLoading = true }
+        
         let response = await httpClient.getTrips(from: departureStation, to: arrivalStation)
         
-        await MainActor.run {
-            let now = Date()
-            let formatter = ISO8601DateFormatter()
-            let nextTrip = response?.trips.first { trip in
-                guard let firstLeg = trip.legs.first,
-                      let actualDateTimeString = firstLeg.origin.actualDateTime,
-                      let departureDate = formatter.date(from: actualDateTimeString) else {
-                    return false
-                }
-                return departureDate > now
+        let now = Date()
+        let formatter = ISO8601DateFormatter()
+        let nextTrip = response?.trips.first { trip in
+            guard let firstLeg = trip.legs.first,
+                  let actualDateTimeString = firstLeg.origin.actualDateTime,
+                  let departureDate = formatter.date(from: actualDateTimeString) else {
+                return false
             }
-
-            travel = travel.update(trip: nextTrip)
+            return departureDate > now
         }
+
+        travel = travel.update(trip: nextTrip)
+        await MainActor.run { isLoading = false }
     }
 }
 
