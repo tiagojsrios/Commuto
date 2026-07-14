@@ -13,6 +13,7 @@ class CommutoViewModel: ObservableObject {
     @Published var isLoading = false
     @AppStorage("departureStation") private var departureStation = ""
     @AppStorage("arrivalStation") private var arrivalStation = ""
+    @AppStorage("walkingTimeMinutes") private var walkingTimeMinutes = 0
     
     init() {
         travel = .init()
@@ -44,11 +45,16 @@ class CommutoViewModel: ObservableObject {
         let formatter = ISO8601DateFormatter()
         let nextTrip = response?.trips.first { trip in
             guard let firstLeg = trip.legs.first,
-                  let actualDateTimeString = firstLeg.origin.actualDateTime,
-                  let departureDate = formatter.date(from: actualDateTimeString) else {
-                return false
+                  let departureString = firstLeg.origin.plannedDateTime,
+                  let departureTime = formatter.date(from: departureString) else {
+                return true // Keep trips we can't evaluate, rather than dropping them
             }
-            return departureDate > now
+
+            // Time needed to leave: departure minus walking time
+            let leaveByTime = departureTime.addingTimeInterval(-Double(self.walkingTimeMinutes) * 60)
+
+            // Only keep trips where there's still time to walk there
+            return leaveByTime > now
         }
 
         travel = travel.update(trip: nextTrip)
