@@ -1,0 +1,59 @@
+name: Update Cask
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-cask:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.BOT_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.BOT_GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Extract release info
+        id: info
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          ZIP_URL=$(echo '${{ toJson(github.event.release.assets) }}' \
+            | jq -r '.[] | select(.name | endswith(".zip")) | .browser_download_url')
+          echo "zip_url=${ZIP_URL}" >> $GITHUB_OUTPUT
+
+      - name: Compute SHA256
+        id: sha
+        run: |
+          curl -sL "${{ steps.info.outputs.zip_url }}" -o app.zip
+          SHA=$(shasum -a 256 app.zip | awk '{print $1}')
+          echo "sha256=${SHA}" >> $GITHUB_OUTPUT
+
+      - name: Update cask file
+        env:
+          VERSION: ${{ steps.info.outputs.version }}
+          SHA256: ${{ steps.sha.outputs.sha256 }}
+          ZIP_URL: ${{ steps.info.outputs.zip_url }}
+        run: |
+          sed -i "s|version \".*\"|version \"${VERSION}\"|" brew/cask.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" brew/cask.rb
+          sed -i "s|url \".*\"|url \"${ZIP_URL}\"|" brew/cask.rb
+
+      - name: Commit and push
+        run: |
+          git add brew/cask.rb
+          git commit -m "Update commuto to v${{ steps.info.outputs.version }}"
+          git push
