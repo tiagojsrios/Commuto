@@ -17,6 +17,8 @@ struct TripDetailsView: View {
                 HStack {
                     Button(action: { showTripDetails = false }) {
                         Image(systemName: "chevron.left")
+                            .padding(2)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     Spacer()
@@ -36,7 +38,7 @@ struct TripDetailsView: View {
                 }
                 .frame(maxWidth: .infinity)
             }
-            .padding(.top, 8)
+            .padding(.top, 15)
 
             Divider()
                 .padding(.bottom, 8)
@@ -50,15 +52,17 @@ struct TripDetailsView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         TripRow(trip: trip!)
                     }
+                    .frame(maxWidth: .infinity)
                 }
+                .padding(.bottom, 15)
             }
         }
-        .padding(.vertical, 4)
-        .frame(width: 250, height: 400)
+        .frame(width: 250, height: 300)
     }
 }
 
 struct TripRow: View {
+    @AppStorage("walkingTimeMinutes") private var walkingTimeMinutes = 0
     let trip: Trip
 
     var body: some View {
@@ -74,6 +78,14 @@ struct TripRow: View {
 
             Divider()
                 .padding(.bottom, 6)
+            
+            // Walking step, if applicable
+            if walkingTimeMinutes > 0, let firstLeg = trip.legs.first {
+                WalkingStepRow(
+                    minutes: walkingTimeMinutes,
+                    arrivalTime: firstLeg.origin.plannedDateTime
+                )
+            }
 
             // Timeline of legs
             VStack(alignment: .leading, spacing: 0) {
@@ -258,5 +270,65 @@ struct StopRow: View {
         let display = DateFormatter()
         display.dateFormat = "HH:mm"
         return display.string(from: date)
+    }
+}
+
+struct WalkingStepRow: View {
+    let minutes: Int
+    let arrivalTime: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center, spacing: 8) {
+                Circle()
+                    .fill(.green)
+                    .frame(width: 10, height: 10)
+
+                HStack(spacing: 4) {
+                    Text("Leave by")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 30, alignment: .leading)
+
+                    Text(departureTime ?? "—")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+
+                    Spacer()
+                }
+            }
+
+            HStack(alignment: .center, spacing: 8) {
+                Rectangle()
+                    .fill(.secondary.opacity(0.4))
+                    .frame(width: 2)
+                    .frame(maxHeight: .infinity)
+                    .padding(.leading, 4)
+
+                HStack(spacing: 6) {
+                    Image(systemName: "figure.walk")
+                        .font(.caption)
+                    Text("Walk · \(minutes) min\(minutes == 1 ? "" : "s")")
+                        .font(.caption)
+                }
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 6))
+            }
+            .frame(minHeight: 32)
+            .padding(.bottom, 16)
+        }
+    }
+
+    private var departureTime: String? {
+        guard let arrivalTime,
+              let formatter = ISO8601DateFormatter().date(from: arrivalTime) as Date? else {
+            return nil
+        }
+        let adjusted = formatter.addingTimeInterval(-Double(minutes) * 60)
+        let display = DateFormatter()
+        display.dateFormat = "HH:mm"
+        return display.string(from: adjusted)
     }
 }
