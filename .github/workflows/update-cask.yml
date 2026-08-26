@@ -7,14 +7,13 @@ on:
 jobs:
   update-cask:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
-      - name: Checkout
+      - name: Checkout tap repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: tiagojsrios/homebrew-tap
+          token: ${{ secrets.TAP_GITHUB_TOKEN }}
           ref: main
 
       - name: Import GPG key
@@ -49,12 +48,12 @@ jobs:
           SHA256: ${{ steps.sha.outputs.sha256 }}
           ZIP_URL: ${{ steps.info.outputs.zip_url }}
         run: |
-          sed -i "s|version \".*\"|version \"${VERSION}\"|" brew/cask.rb
-          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" brew/cask.rb
-          sed -i "s|url \".*\"|url \"${ZIP_URL}\"|" brew/cask.rb
+          sed -i "s|version \".*\"|version \"${VERSION}\"|" Casks/commuto.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Casks/commuto.rb
+          sed -i "s|url \".*\"|url \"${ZIP_URL}\"|" Casks/commuto.rb
 
       - name: Commit and push
         run: |
-          git add brew/cask.rb
+          git add Casks/commuto.rb
           git commit -m "Update commuto to v${{ steps.info.outputs.version }}"
           git push origin main
