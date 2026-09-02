@@ -8,13 +8,29 @@ import Combine
 
 class CommutoViewModel: ObservableObject {
     @Published var travel: TravelState
+    @Published var trips: [Trip] = []
+    @Published var selectedTripIndex: Int = 0
     private var timer: Timer?
     private var httpClient: NSHttpClient
     @Published var isLoading = false
     @AppStorage("departureStation") private var departureStation = ""
     @AppStorage("arrivalStation") private var arrivalStation = ""
     @AppStorage("walkingTimeMinutes") private var walkingTimeMinutes = 0
-    
+
+    var selectedTrip: Trip? {
+        trips.indices.contains(selectedTripIndex) ? trips[selectedTripIndex] : nil
+    }
+
+    func selectPreviousTrip() {
+        guard selectedTripIndex > 0 else { return }
+        selectedTripIndex -= 1
+    }
+
+    func selectNextTrip() {
+        guard selectedTripIndex < trips.count - 1 else { return }
+        selectedTripIndex += 1
+    }
+
     init() {
         travel = .init()
         httpClient = .init()
@@ -40,10 +56,11 @@ class CommutoViewModel: ObservableObject {
         await MainActor.run { isLoading = true }
         
         let response = await httpClient.getTrips(from: departureStation, to: arrivalStation)
-        
+        let allTrips = response?.trips ?? []
+
         let now = Date()
         let formatter = ISO8601DateFormatter()
-        let nextTrip = response?.trips.first { trip in
+        let reachableIndex = allTrips.firstIndex { trip in
             guard let firstLeg = trip.legs.first,
                   let departureString = firstLeg.origin.plannedDateTime,
                   let departureTime = formatter.date(from: departureString) else {
@@ -57,7 +74,12 @@ class CommutoViewModel: ObservableObject {
             return leaveByTime > now
         }
 
-        travel = travel.update(trip: nextTrip)
+        await MainActor.run {
+            self.trips = allTrips
+            self.selectedTripIndex = reachableIndex ?? 0
+        }
+
+        travel = travel.update(trip: reachableIndex.map { allTrips[$0] })
         await MainActor.run { isLoading = false }
     }
 }
@@ -76,18 +98,17 @@ class TravelState {
         if (self.status == "Loading") {
             return "Loading..."
         }
-        
+
         if (self.nextDepartureTime != nil) {
-            return convertDateAsHumanReadable(dateString: nextDepartureTime!)
+            return TravelState.relativeTime(for: nextDepartureTime!)
         }
-        
+
         return "Error"
     }
-    
-    func convertDateAsHumanReadable(dateString: String) -> String
-    {
+
+    static func relativeTime(for isoDateString: String) -> String {
         let formatter = ISO8601DateFormatter()
-        let date = formatter.date(from: dateString)!
+        guard let date = formatter.date(from: isoDateString) else { return "Unavailable" }
 
         let relativeDateFormatter = RelativeDateTimeFormatter()
         relativeDateFormatter.unitsStyle = .full

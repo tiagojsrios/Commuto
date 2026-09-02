@@ -13,7 +13,7 @@ struct MainMenuView: View {
         VStack(alignment: .leading, spacing: 12) {
             NextTripCard(travelState: travelState)
 
-            if let trip = travelState.travel.trip {
+            if let trip = travelState.selectedTrip {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Itinerary")
                         .font(.subheadline)
