@@ -7,34 +7,52 @@ import SwiftUI
 
 struct MainMenuView: View {
     @Binding var showSettings: Bool
-    @Binding var showTripDetails: Bool
     @ObservedObject var travelState: CommutoViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            MenuRow(icon: "tram.fill", title: "Trip Details") {
-                showTripDetails = true
+        VStack(alignment: .leading, spacing: 12) {
+            NextTripCard(travelState: travelState)
+
+            if let trip = travelState.travel.trip {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Itinerary")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    TripRow(trip: trip)
+                }
+                .cardStyle(padding: 14)
             }
 
-            MenuRow(icon: travelState.isLoading ? "arrow.clockwise.circle" : "arrow.clockwise", title: travelState.isLoading ? "Refreshing..." : "Refresh") {
+            QuickActionBar(travelState: travelState, showSettings: $showSettings)
+        }
+        .padding(16)
+        .frame(width: 320)
+    }
+}
+
+private struct QuickActionBar: View {
+    @ObservedObject var travelState: CommutoViewModel
+    @Binding var showSettings: Bool
+
+    var body: some View {
+        HStack(spacing: 4) {
+            QuickActionButton(
+                icon: travelState.isLoading ? "arrow.clockwise.circle" : "arrow.clockwise",
+                label: travelState.isLoading ? "Refreshing" : "Refresh",
+                tint: .blue,
+                isDisabled: travelState.isLoading
+            ) {
                 travelState.refresh()
             }
-            .disabled(travelState.isLoading)
-            .opacity(travelState.isLoading ? 0.5 : 1)
-            
-            Divider()
 
-            MenuRow(icon: "gear", title: "Settings") {
+            QuickActionButton(icon: "gear", label: "Settings", tint: .secondary) {
                 showSettings = true
             }
 
-            Divider()
-
-            MenuRow(icon: "power", title: "Exit") {
+            QuickActionButton(icon: "power", label: "Exit", tint: .red) {
                 NSApplication.shared.terminate(nil)
             }
         }
-        .padding(.vertical, 4)
-        .frame(width: 300)
     }
 }

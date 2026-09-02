@@ -9,21 +9,17 @@ import SwiftUI
 struct CommutoApp : App {
     @StateObject private var commutoViewModel = CommutoViewModel()
     @State private var showSettings = false
-    @State private var showTripDetails = false
-    
+
     var body: some Scene {
         MenuBarExtra {
             VStack(alignment: .leading, spacing: 0) {
                 if showSettings {
                     SettingsView(showSettings: $showSettings)
-                } else if showTripDetails {
-                    TripDetailsView(showTripDetails: $showTripDetails, trip: commutoViewModel.travel.trip)
                 } else {
-                    MainMenuView(showSettings: $showSettings, showTripDetails: $showTripDetails, travelState: commutoViewModel)
+                    MainMenuView(showSettings: $showSettings, travelState: commutoViewModel)
                 }
             }
             .padding(.vertical, 4)
-            .frame(width: 300)
         } label: {
             HStack {
                 Image(systemName: "tram.fill")
