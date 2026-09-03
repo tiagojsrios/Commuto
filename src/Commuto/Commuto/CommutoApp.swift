@@ -14,7 +14,7 @@ struct CommutoApp : App {
         MenuBarExtra {
             VStack(alignment: .leading, spacing: 0) {
                 if showSettings {
-                    SettingsView(showSettings: $showSettings)
+                    SettingsView(showSettings: $showSettings, travelState: commutoViewModel)
                 } else {
                     MainMenuView(showSettings: $showSettings, travelState: commutoViewModel)
                 }

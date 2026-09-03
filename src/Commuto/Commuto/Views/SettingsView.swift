@@ -7,10 +7,23 @@ import SwiftUI
 
 struct SettingsView: View {
     @Binding var showSettings: Bool
+    @ObservedObject var travelState: CommutoViewModel
     @AppStorage("apiKey") private var apiKey = ""
     @AppStorage("departureStation") private var departureStation = ""
     @AppStorage("arrivalStation") private var arrivalStation = ""
     @AppStorage("walkingTimeMinutes") private var walkingTimeMinutes = 0
+
+    @State private var initialApiKey = ""
+    @State private var initialDepartureStation = ""
+    @State private var initialArrivalStation = ""
+    @State private var initialWalkingTimeMinutes = 0
+
+    private var hasChanges: Bool {
+        apiKey != initialApiKey
+            || departureStation != initialDepartureStation
+            || arrivalStation != initialArrivalStation
+            || walkingTimeMinutes != initialWalkingTimeMinutes
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -62,6 +75,9 @@ struct SettingsView: View {
             HStack {
                 Spacer()
                 Button("Save") {
+                    if hasChanges {
+                        travelState.refresh()
+                    }
                     showSettings = false
                 }
                 .buttonStyle(.borderedProminent)
@@ -69,6 +85,12 @@ struct SettingsView: View {
         }
         .padding(16)
         .frame(width: 320)
+        .onAppear {
+            initialApiKey = apiKey
+            initialDepartureStation = departureStation
+            initialArrivalStation = arrivalStation
+            initialWalkingTimeMinutes = walkingTimeMinutes
+        }
     }
 }
 
