@@ -5,80 +5,12 @@
 
 import SwiftUI
 
-struct TripDetailsView: View {
-    @Binding var showTripDetails: Bool
-    let trip: Trip?
-
-    var body: some View {
-        VStack(alignment: .leading) {
-
-            HStack(spacing: 0) {
-                // Column 1 - Back button
-                HStack {
-                    Button(action: { showTripDetails = false }) {
-                        Image(systemName: "chevron.left")
-                            .padding(2)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity)
-
-                // Column 2 - Title
-                Text("Trip Details")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .center)
-
-                // Column 3 - Spacer matching chevron size
-                HStack {
-                    Spacer()
-                    Image(systemName: "chevron.left")
-                        .hidden() // Same size as the back button, but invisible
-                }
-                .frame(maxWidth: .infinity)
-            }
-            .padding(.top, 15)
-
-            Divider()
-                .padding(.bottom, 8)
-
-            if trip == nil {
-                Text("No trips available")
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        TripRow(trip: trip!)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .padding(.bottom, 15)
-            }
-        }
-        .frame(width: 250, height: 300)
-    }
-}
-
 struct TripRow: View {
     @AppStorage("walkingTimeMinutes") private var walkingTimeMinutes = 0
     let trip: Trip
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            // Trip header
-            HStack {
-                Image(systemName: "tram.fill")
-                Text("Trip 1")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                Spacer()
-            }
-
-            Divider()
-                .padding(.bottom, 6)
-            
+        VStack(alignment: .leading, spacing: 0) {
             // Walking step, if applicable
             if walkingTimeMinutes > 0, let firstLeg = trip.legs.first {
                 WalkingStepRow(
@@ -88,14 +20,10 @@ struct TripRow: View {
             }
 
             // Timeline of legs
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(Array(trip.legs.enumerated()), id: \.offset) { legIndex, leg in
-                    LegTimelineRow(leg: leg, isLast: legIndex == trip.legs.count - 1)
-                }
+            ForEach(Array(trip.legs.enumerated()), id: \.offset) { legIndex, leg in
+                LegTimelineRow(leg: leg, isLast: legIndex == trip.legs.count - 1)
             }
         }
-        .padding(10)
-        .background(.quaternary, in: RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -126,8 +54,7 @@ struct LegTimelineRow: View {
                 // Vertical line, aligned under the circle
                 Rectangle()
                     .fill(.secondary.opacity(0.4))
-                    .frame(width: 2)
-                    .frame(maxHeight: .infinity)
+                    .frame(width: 2, height: 32)
                     .padding(.leading, 4)
 
                 // Transport info
@@ -301,8 +228,7 @@ struct WalkingStepRow: View {
             HStack(alignment: .center, spacing: 8) {
                 Rectangle()
                     .fill(.secondary.opacity(0.4))
-                    .frame(width: 2)
-                    .frame(maxHeight: .infinity)
+                    .frame(width: 2, height: 32)
                     .padding(.leading, 4)
 
                 HStack(spacing: 6) {
