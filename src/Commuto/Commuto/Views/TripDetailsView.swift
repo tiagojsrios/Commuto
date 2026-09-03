@@ -54,8 +54,7 @@ struct LegTimelineRow: View {
                 // Vertical line, aligned under the circle
                 Rectangle()
                     .fill(.secondary.opacity(0.4))
-                    .frame(width: 2)
-                    .frame(maxHeight: .infinity)
+                    .frame(width: 2, height: 32)
                     .padding(.leading, 4)
 
                 // Transport info
@@ -229,8 +228,7 @@ struct WalkingStepRow: View {
             HStack(alignment: .center, spacing: 8) {
                 Rectangle()
                     .fill(.secondary.opacity(0.4))
-                    .frame(width: 2)
-                    .frame(maxHeight: .infinity)
+                    .frame(width: 2, height: 32)
                     .padding(.leading, 4)
 
                 HStack(spacing: 6) {
