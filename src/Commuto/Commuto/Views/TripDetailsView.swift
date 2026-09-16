@@ -6,29 +6,26 @@
 import SwiftUI
 
 struct TripRow: View {
-    @AppStorage("walkingTimeMinutes") private var walkingTimeMinutes = 0
-    let trip: Trip
+    let travel: Travel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Walking step, if applicable
-            if walkingTimeMinutes > 0, let firstLeg = trip.legs.first {
-                WalkingStepRow(
-                    minutes: walkingTimeMinutes,
-                    arrivalTime: firstLeg.origin.plannedDateTime
-                )
-            }
-
-            // Timeline of legs
-            ForEach(Array(trip.legs.enumerated()), id: \.offset) { legIndex, leg in
-                LegTimelineRow(leg: leg, isLast: legIndex == trip.legs.count - 1)
+            ForEach(Array(travel.legs.enumerated()), id: \.offset) { legIndex, leg in
+                // Walking step, if applicable
+                if leg.isWalking {
+                    let durationInSeconds = leg.destination.actualTime!.timeIntervalSince(leg.origin.actualTime!)
+                    
+                    WalkingStepRow(minutes: Int(durationInSeconds / 60), leaveByTime: leg.origin.displayTime!)
+                } else {
+                    LegTimelineRow(leg: leg, isLast: legIndex == travel.legs.count - 1)
+                }
             }
         }
     }
 }
 
 struct LegTimelineRow: View {
-    let leg: Leg
+    let leg: TravelLeg
     let isLast: Bool
 
     var body: some View {
@@ -37,16 +34,9 @@ struct LegTimelineRow: View {
             // Origin row
             HStack(alignment: .center, spacing: 8) {
                 Circle()
-                    .fill(leg.cancelled ? .red : .blue)
+                    .fill(leg.isWalking ? .green : (leg.isCancelled ? .red : .blue))
                     .frame(width: 10, height: 10)
-                StopRow(
-                    label: "From",
-                    name: leg.origin.name ?? "Unknown",
-                    time: leg.origin.plannedDateTime,
-                    actualTime: leg.origin.actualDateTime,
-                    plannedTrack: leg.origin.plannedTrack,
-                    actualTrack: leg.origin.actualTrack
-                )
+                StopRow(label: leg.isWalking ? "Leave by" : "From", stop: leg.origin)
             }
 
             // Line + transport info
@@ -58,13 +48,15 @@ struct LegTimelineRow: View {
                     .padding(.leading, 4)
 
                 // Transport info
-                if let product = leg.product {
+                if let label = leg.transportLabel {
                     HStack(spacing: 6) {
-                        Image(systemName: iconForType(product.type))
+                        if let icon = leg.transportIcon {
+                            Image(systemName: icon)
+                                .font(.caption)
+                        }
+                        Text(label)
                             .font(.caption)
-                        Text(product.displayName ?? product.shortCategoryName ?? product.type.rawValue)
-                            .font(.caption)
-                        if let number = product.number {
+                        if let number = leg.lineNumber {
                             Text("· \(number)")
                                 .font(.caption)
                         }
@@ -84,21 +76,14 @@ struct LegTimelineRow: View {
             // Destination row
             HStack(alignment: .center, spacing: 8) {
                 Circle()
-                    .fill(leg.cancelled ? .red : .blue)
+                    .fill(leg.isWalking ? .green : (leg.isCancelled ? .red : .blue))
                     .frame(width: 10, height: 10)
-                StopRow(
-                    label: "To",
-                    name: leg.destination.name ?? "Unknown",
-                    time: leg.destination.plannedDateTime,
-                    actualTime: leg.destination.actualDateTime,
-                    plannedTrack: leg.destination.plannedTrack,
-                    actualTrack: leg.destination.actualTrack
-                )
+                StopRow(label: "To", stop: leg.destination)
             }
             .padding(.bottom, 6)
 
-            // Transfer badge
-            if !isLast {
+            // Transfer badge (not shown after a walking leg)
+            if !isLast && !leg.isWalking {
                 HStack(spacing: 4) {
                     Spacer()
                         .frame(width: 18)
@@ -118,40 +103,11 @@ struct LegTimelineRow: View {
             }
         }
     }
-
-    private func iconForType(_ type: TransportType) -> String {
-        switch type {
-        case .train: return "tram.fill"
-        case .bus: return "bus.fill"
-        case .tram: return "tram.fill"
-        case .metro: return "metro"
-        case .ferry: return "ferry.fill"
-        case .walk: return "figure.walk"
-        case .bike: return "bicycle"
-        case .car: return "car.fill"
-        case .taxi: return "car.fill"
-        default: return "questionmark.circle"
-        }
-    }
 }
 
 struct StopRow: View {
     let label: String
-    let name: String
-    let time: String?
-    let actualTime: String?
-    let plannedTrack: String?
-    let actualTrack: String?
-
-    private var isDelayed: Bool {
-        guard let planned = time, let actual = actualTime else { return false }
-        return planned != actual
-    }
-
-    private var trackChanged: Bool {
-        guard let planned = plannedTrack, let actual = actualTrack else { return false }
-        return planned != actual
-    }
+    let stop: TravelStop
 
     var body: some View {
         HStack(alignment: .center, spacing: 4) {
@@ -162,20 +118,20 @@ struct StopRow: View {
                 .frame(width: 30, alignment: .leading)
 
             // Station name
-            Text(name)
+            Text(stop.name)
                 .font(.subheadline)
                 .fontWeight(.medium)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             // Time
             VStack(alignment: .trailing, spacing: 1) {
-                if let planned = time {
+                if let planned = stop.plannedTime {
                     Text(formatTime(planned))
                         .font(.caption)
-                        .foregroundStyle(isDelayed ? .secondary : .primary)
-                        .strikethrough(isDelayed)
+                        .foregroundStyle(stop.isDelayed ? .secondary : .primary)
+                        .strikethrough(stop.isDelayed)
                 }
-                if isDelayed, let actual = actualTime {
+                if stop.isDelayed, let actual = stop.actualTime {
                     Text(formatTime(actual))
                         .font(.caption)
                         .foregroundStyle(.red)
@@ -183,17 +139,15 @@ struct StopRow: View {
             }
 
             // Platform
-            if let track = plannedTrack {
-                Text("- \(trackChanged ? (actualTrack ?? track) : track)")
+            if let track = stop.plannedTrack {
+                Text("- \(stop.trackChanged ? (stop.actualTrack ?? track) : track)")
                     .font(.caption)
-                    .foregroundStyle(trackChanged ? .orange : .secondary)
+                    .foregroundStyle(stop.trackChanged ? .orange : .secondary)
             }
         }
     }
 
-    private func formatTime(_ isoString: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        guard let date = formatter.date(from: isoString) else { return isoString }
+    private func formatTime(_ date: Date) -> String {
         let display = DateFormatter()
         display.dateFormat = "HH:mm"
         return display.string(from: date)
@@ -202,7 +156,7 @@ struct StopRow: View {
 
 struct WalkingStepRow: View {
     let minutes: Int
-    let arrivalTime: String?
+    let leaveByTime: Date
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -217,7 +171,7 @@ struct WalkingStepRow: View {
                         .foregroundStyle(.secondary)
                         .frame(width: 30, alignment: .leading)
 
-                    Text(departureTime ?? "—")
+                    Text(formatTime(leaveByTime))
                         .font(.subheadline)
                         .fontWeight(.medium)
 
@@ -247,14 +201,9 @@ struct WalkingStepRow: View {
         }
     }
 
-    private var departureTime: String? {
-        guard let arrivalTime,
-              let formatter = ISO8601DateFormatter().date(from: arrivalTime) as Date? else {
-            return nil
-        }
-        let adjusted = formatter.addingTimeInterval(-Double(minutes) * 60)
+    private func formatTime(_ date: Date) -> String {
         let display = DateFormatter()
         display.dateFormat = "HH:mm"
-        return display.string(from: adjusted)
+        return display.string(from: date)
     }
 }

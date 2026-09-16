@@ -6,11 +6,27 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		12DA86A78C49EA20E32684B2 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DE2F38B22FC106DF007CA23C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DE2F38B92FC106DF007CA23C;
+			remoteInfo = Commuto;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		846A32C3BB81E3C29B621792 /* CommutoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommutoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DE2F38BA2FC106DF007CA23C /* Commuto.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Commuto.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		73C8EB5BB682575EC87A171A /* CommutoTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CommutoTests;
+			sourceTree = "<group>";
+		};
 		DE2F38BC2FC106DF007CA23C /* Commuto */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Commuto;
@@ -19,6 +35,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		4F7FD633DBDDE131CA3766E4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DE2F38B72FC106DF007CA23C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				DE2F38BC2FC106DF007CA23C /* Commuto */,
+				73C8EB5BB682575EC87A171A /* CommutoTests */,
 				DE2F38BB2FC106DF007CA23C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				DE2F38BA2FC106DF007CA23C /* Commuto.app */,
+				846A32C3BB81E3C29B621792 /* CommutoTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -48,6 +73,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		30877432D1026706D7E805DA /* CommutoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C826A6FCE48478DCB74F2134 /* Build configuration list for PBXNativeTarget "CommutoTests" */;
+			buildPhases = (
+				CBEE3772A077021721A278F6 /* Sources */,
+				4F7FD633DBDDE131CA3766E4 /* Frameworks */,
+				D58E72E310275DFF6C15C0C8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E9DF469611A11F5125227C37 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				73C8EB5BB682575EC87A171A /* CommutoTests */,
+			);
+			name = CommutoTests;
+			packageProductDependencies = (
+			);
+			productName = CommutoTests;
+			productReference = 846A32C3BB81E3C29B621792 /* CommutoTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		DE2F38B92FC106DF007CA23C /* Commuto */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DE2F38C52FC106E2007CA23C /* Build configuration list for PBXNativeTarget "Commuto" */;
@@ -80,6 +128,10 @@
 				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
+					30877432D1026706D7E805DA = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = DE2F38B92FC106DF007CA23C;
+					};
 					DE2F38B92FC106DF007CA23C = {
 						CreatedOnToolsVersion = 26.5;
 					};
@@ -100,11 +152,19 @@
 			projectRoot = "";
 			targets = (
 				DE2F38B92FC106DF007CA23C /* Commuto */,
+				30877432D1026706D7E805DA /* CommutoTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		D58E72E310275DFF6C15C0C8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DE2F38B82FC106DF007CA23C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -115,6 +175,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		CBEE3772A077021721A278F6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DE2F38B62FC106DF007CA23C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,7 +191,53 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		E9DF469611A11F5125227C37 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DE2F38B92FC106DF007CA23C /* Commuto */;
+			targetProxy = 12DA86A78C49EA20E32684B2 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		50AF03B971722F244F58D669 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.4;
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.commuto.CommutoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Commuto.app/Contents/MacOS/Commuto";
+			};
+			name = Release;
+		};
+		5D2CCE8038A39D5E0853964B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.4;
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.commuto.CommutoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Commuto.app/Contents/MacOS/Commuto";
+			};
+			name = Debug;
+		};
 		DE2F38C32FC106E2007CA23C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -314,6 +427,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		C826A6FCE48478DCB74F2134 /* Build configuration list for PBXNativeTarget "CommutoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5D2CCE8038A39D5E0853964B /* Debug */,
+				50AF03B971722F244F58D669 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		DE2F38B52FC106DF007CA23C /* Build configuration list for PBXProject "Commuto" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

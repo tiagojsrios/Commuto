@@ -6,7 +6,7 @@
 import Foundation
 import SwiftUI
 
-class NSHttpClient {
+class NSHttpClient: TripFetching {
     @AppStorage("apiKey") private var apiKey = ""
     private var urlComponents = URLComponents(string: "https://gateway.apiportal.ns.nl/reisinformatie-api/api/v3/trips")
     

@@ -7,45 +7,51 @@ import SwiftUI
 import Combine
 
 class CommutoViewModel: ObservableObject {
-    @Published var travel: TravelState
-    @Published var trips: [Trip] = []
-    @Published var selectedTripIndex: Int = 0
-    private var timer: Timer?
-    private var httpClient: NSHttpClient
+    @Published var travels: [Travel] = []
+    @Published var nextTravel: Travel?
+    @Published var selectedTravelIndex: Int = 0
     @Published var isLoading = false
+
+    private var timer: Timer?
+    private let travelProvider: TravelProviding
     @AppStorage("departureStation") private var departureStation = ""
     @AppStorage("arrivalStation") private var arrivalStation = ""
     @AppStorage("walkingTimeMinutes") private var walkingTimeMinutes = 0
 
-    var selectedTrip: Trip? {
-        trips.indices.contains(selectedTripIndex) ? trips[selectedTripIndex] : nil
+    var selectedTravel: Travel? {
+        travels.indices.contains(selectedTravelIndex) ? travels[selectedTravelIndex] : nil
     }
 
-    func selectPreviousTrip() {
-        guard selectedTripIndex > 0 else { return }
-        selectedTripIndex -= 1
+    /// Text shown in the menu bar: the countdown to the next reachable travel.
+    var displayText: String {
+        guard let nextTravel else { return "Error" }
+        return nextTravel.countdownText
     }
 
-    func selectNextTrip() {
-        guard selectedTripIndex < trips.count - 1 else { return }
-        selectedTripIndex += 1
+    func selectPreviousTravel() {
+        guard selectedTravelIndex > 0 else { return }
+        selectedTravelIndex -= 1
     }
 
-    init() {
-        travel = .init()
-        httpClient = .init()
-        
+    func selectNextTravel() {
+        guard selectedTravelIndex < travels.count - 1 else { return }
+        selectedTravelIndex += 1
+    }
+
+    init(travelProvider: TravelProviding = NetherlandsTravelService()) {
+        self.travelProvider = travelProvider
+
         timer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { _ in
             Task {
                 await self.run()
             }
         }
-        
+
         Task {
             await self.run()
         }
     }
-    
+
     func refresh() {
         Task {
             await self.run()
@@ -54,77 +60,19 @@ class CommutoViewModel: ObservableObject {
 
     func run() async {
         await MainActor.run { isLoading = true }
-        
-        let response = await httpClient.getTrips(from: departureStation, to: arrivalStation)
-        let allTrips = response?.trips ?? []
 
-        let now = Date()
-        let formatter = ISO8601DateFormatter()
-        let reachableIndex = allTrips.firstIndex { trip in
-            guard let firstLeg = trip.legs.first,
-                  let departureString = firstLeg.origin.plannedDateTime,
-                  let departureTime = formatter.date(from: departureString) else {
-                return true // Keep trips we can't evaluate, rather than dropping them
-            }
-
-            // Time needed to leave: departure minus walking time
-            let leaveByTime = departureTime.addingTimeInterval(-Double(self.walkingTimeMinutes) * 60)
-
-            // Only keep trips where there's still time to walk there
-            return leaveByTime > now
-        }
+        let travels = await travelProvider.fetchUpcomingTravels(
+            from: departureStation,
+            to: arrivalStation,
+            walkingTimeMinutes: walkingTimeMinutes
+        )
+        let reachableIndex = travels.reachableIndex()
 
         await MainActor.run {
-            self.trips = allTrips
-            self.selectedTripIndex = reachableIndex ?? 0
+            self.travels = travels
+            self.selectedTravelIndex = reachableIndex ?? 0
+            self.nextTravel = reachableIndex.map { travels[$0] }
+            self.isLoading = false
         }
-
-        travel = travel.update(trip: reachableIndex.map { allTrips[$0] })
-        await MainActor.run { isLoading = false }
-    }
-}
-
-class TravelState {
-    public var status: String
-    public var nextDepartureTime: String?
-    public var numberOfTransfers: Int?
-    public var trip: Trip?
-    
-    init() {
-        self.status = "Initial"
-    }
-    
-    func getDisplayText() -> String {
-        if (self.status == "Loading") {
-            return "Loading..."
-        }
-
-        if (self.nextDepartureTime != nil) {
-            return TravelState.relativeTime(for: nextDepartureTime!)
-        }
-
-        return "Error"
-    }
-
-    static func relativeTime(for isoDateString: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        guard let date = formatter.date(from: isoDateString) else { return "Unavailable" }
-
-        let relativeDateFormatter = RelativeDateTimeFormatter()
-        relativeDateFormatter.unitsStyle = .full
-        return relativeDateFormatter.localizedString(for: date, relativeTo: Date())
-    }
-    
-    internal func update(trip: Trip?) -> TravelState {
-        guard let trip = trip else {
-            self.status = "Error"
-            return self
-        }
-        
-        self.nextDepartureTime = trip.legs[0].origin.actualDateTime
-        self.numberOfTransfers = trip.legs.count
-        self.trip = trip
-        
-        return self
     }
 }

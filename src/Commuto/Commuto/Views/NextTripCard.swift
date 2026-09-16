@@ -8,23 +8,21 @@ import SwiftUI
 struct NextTripCard: View {
     @ObservedObject var travelState: CommutoViewModel
 
-    private var trip: Trip? { travelState.selectedTrip }
+    private var travel: Travel? { travelState.selectedTravel }
 
     private var countdownText: String {
-        guard let departure = trip?.legs.first?.origin.actualDateTime ?? trip?.legs.first?.origin.plannedDateTime else {
-            return travelState.travel.getDisplayText()
-        }
-        return TravelState.relativeTime(for: departure)
+        guard let travel else { return travelState.displayText }
+        return travel.countdownText
     }
 
     private var statusInfo: (text: String, color: Color)? {
-        guard let trip else { return nil }
-        switch trip.status {
+        guard let travel else { return nil }
+        switch travel.status {
         case .cancelled:
             return ("Cancelled", .red)
-        case .disruption, .alternativeTransport, .changeNotPossible, .maintenance, .uncertain:
+        case .disrupted:
             return ("Disrupted", .orange)
-        default:
+        case .onTime:
             return ("On time", .green)
         }
     }
@@ -47,25 +45,25 @@ struct NextTripCard: View {
                 }
             }
 
-            if travelState.trips.count > 1 {
+            if travelState.travels.count > 1 {
                 HStack {
-                    Button(action: travelState.selectPreviousTrip) {
+                    Button(action: travelState.selectPreviousTravel) {
                         Image(systemName: "chevron.left")
                     }
-                    .disabled(travelState.selectedTripIndex == 0)
+                    .disabled(travelState.selectedTravelIndex == 0)
 
                     Spacer()
 
-                    Text("Trip \(travelState.selectedTripIndex + 1) of \(travelState.trips.count)")
+                    Text("Trip \(travelState.selectedTravelIndex + 1) of \(travelState.travels.count)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
                     Spacer()
 
-                    Button(action: travelState.selectNextTrip) {
+                    Button(action: travelState.selectNextTravel) {
                         Image(systemName: "chevron.right")
                     }
-                    .disabled(travelState.selectedTripIndex == travelState.trips.count - 1)
+                    .disabled(travelState.selectedTravelIndex == travelState.travels.count - 1)
                 }
                 .buttonStyle(.plain)
                 .font(.caption)
@@ -74,9 +72,9 @@ struct NextTripCard: View {
 
             Text(countdownText)
                 .font(.system(size: 26, weight: .bold, design: .rounded))
-                .foregroundStyle(trip == nil && travelState.travel.status == "Error" ? .red : .primary)
+                .foregroundStyle(travel == nil && travelState.nextTravel == nil ? .red : .primary)
 
-            if let trip, let origin = trip.legs.first?.origin.name, let destination = trip.legs.last?.destination.name {
+            if let travel, let origin = travel.origin?.name, let destination = travel.destination?.name {
                 HStack(spacing: 6) {
                     Text(origin)
                     Image(systemName: "arrow.right")
@@ -87,8 +85,8 @@ struct NextTripCard: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
 
-                if trip.transfers > 0 {
-                    Text("\(trip.transfers) transfer\(trip.transfers == 1 ? "" : "s")")
+                if travel.transfers > 0 {
+                    Text("\(travel.transfers) transfer\(travel.transfers == 1 ? "" : "s")")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

@@ -23,7 +23,7 @@ struct CommutoApp : App {
         } label: {
             HStack {
                 Image(systemName: "tram.fill")
-                Text(commutoViewModel.travel.getDisplayText())
+                Text(commutoViewModel.displayText)
             }
         }
         .menuBarExtraStyle(.window)
